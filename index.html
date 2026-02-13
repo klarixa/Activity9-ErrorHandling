@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resilient Systems | Error Handling Architecture</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body data-theme="dark">
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <div class="logo-area">
+                    <span class="shield-bolt">🛡️</span>
+                    <h1>System Resilience</h1>
+                </div>
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                    <div class="sun"></div>
+                    <div class="moon"></div>
+                </button>
+            </div>
+            <p>Advanced error orchestration, intelligent retry mechanisms, and circuit breaker patterns for
+                mission-critical applications.</p>
+        </header>
+
+        <div class="controls-panel">
+            <div class="scenario-controls">
+                <h3>🎭 Error Scenarios</h3>
+                <div class="scenario-grid">
+                    <button class="btn scenario-btn" onclick="errorHandler.testNetworkTimeout()">
+                        🕐 Network Timeout
+                    </button>
+                    <button class="btn scenario-btn" onclick="errorHandler.testServerError()">
+                        🔥 Server Error (500)
+                    </button>
+                    <button class="btn scenario-btn" onclick="errorHandler.testRateLimiting()">
+                        ⚡ Rate Limiting (429)
+                    </button>
+                    <button class="btn scenario-btn" onclick="errorHandler.testUnauthorized()">
+                        🔒 Unauthorized (401)
+                    </button>
+                    <button class="btn scenario-btn" onclick="errorHandler.testNotFound()">
+                        🔍 Not Found (404)
+                    </button>
+                    <button class="btn scenario-btn" onclick="errorHandler.testBadRequest()">
+                        ❌ Bad Request (400)
+                    </button>
+                </div>
+            </div>
+
+            <div class="retry-settings">
+                <h3>⚙️ Retry Configuration</h3>
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <label>Max Retries:</label>
+                        <input type="number" id="maxRetries" value="3" min="0" max="10">
+                    </div>
+                    <div class="setting-group">
+                        <label>Base Delay (ms):</label>
+                        <input type="number" id="baseDelay" value="1000" min="100" max="5000" step="100">
+                    </div>
+                    <div class="setting-group">
+                        <label>Backoff Type:</label>
+                        <select id="backoffType">
+                            <option value="exponential">Exponential</option>
+                            <option value="linear">Linear</option>
+                            <option value="fixed">Fixed</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label>Timeout (ms):</label>
+                        <input type="number" id="requestTimeout" value="5000" min="1000" max="30000" step="1000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-dashboard">
+            <div class="status-card">
+                <h3>📊 Request Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Requests:</span>
+                        <span id="totalRequests" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Successful:</span>
+                        <span id="successfulRequests" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Failed:</span>
+                        <span id="failedRequests" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Retries:</span>
+                        <span id="totalRetries" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Success Rate:</span>
+                        <span id="successRate" class="stat-value">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Response Time:</span>
+                        <span id="avgResponseTime" class="stat-value">0ms</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Circuit Status:</span>
+                        <span id="circuitStatus" class="stat-value">CLOSED</span>
+                    </div>
+                    <div class="stat-item" style="grid-column: span 2;">
+                        <span class="stat-label">Error Distribution:</span>
+                        <span id="errorDistribution" class="stat-value" style="font-size: 11px;">Init...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>🔄 Current Request Status</h3>
+                <div class="current-request">
+                    <div class="request-info">
+                        <span class="request-label">Status:</span>
+                        <span id="currentStatus" class="request-status">Ready</span>
+                    </div>
+                    <div class="request-info">
+                        <span class="request-label">Attempt:</span>
+                        <span id="currentAttempt" class="request-value">0/0</span>
+                    </div>
+                    <div class="request-info">
+                        <span class="request-label">Next Retry:</span>
+                        <span id="nextRetry" class="request-value">-</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="error-log-section">
+            <div class="log-header">
+                <h3>📝 Error Log & Recovery Actions</h3>
+                <div class="log-controls">
+                    <button class="btn btn-small" onclick="errorHandler.clearLog()">Clear Log</button>
+                    <button class="btn btn-small" onclick="errorHandler.exportLog()">Export Log</button>
+                </div>
+            </div>
+            <div class="error-log" id="errorLog">
+                <div class="log-entry welcome">
+                    <span class="timestamp">Ready</span>
+                    <span class="message">System initialized. Ready for error handling tests.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="error-patterns">
+            <h3>🔧 Error Handling Patterns</h3>
+            <div class="patterns-grid">
+                <div class="pattern-card">
+                    <h4>🔄 Retry with Exponential Backoff</h4>
+                    <p>Automatically retry failed requests with increasing delays</p>
+                    <button class="btn btn-pattern" onclick="errorHandler.demonstrateRetryPattern()">Test
+                        Pattern</button>
+                </div>
+
+                <div class="pattern-card">
+                    <h4>🔀 Circuit Breaker</h4>
+                    <p>Prevent cascading failures by temporarily stopping requests</p>
+                    <button class="btn btn-pattern" onclick="errorHandler.demonstrateCircuitBreaker()">Test
+                        Pattern</button>
+                </div>
+
+                <div class="pattern-card">
+                    <h4>🎯 Fallback Strategy</h4>
+                    <p>Provide alternative data when primary source fails</p>
+                    <button class="btn btn-pattern" onclick="errorHandler.demonstrateFallback()">Test Pattern</button>
+                </div>
+
+                <div class="pattern-card">
+                    <h4>⏰ Timeout Handling</h4>
+                    <p>Gracefully handle slow or unresponsive requests</p>
+                    <button class="btn btn-pattern" onclick="errorHandler.demonstrateTimeout()">Test Pattern</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="recovery-actions">
+            <h3>🩹 Recovery Actions</h3>
+            <div class="recovery-grid">
+                <div class="recovery-card">
+                    <h4>User-Friendly Messages</h4>
+                    <div class="message-examples">
+                        <div class="message-example error">
+                            <span class="icon">❌</span>
+                            <span class="text">Something went wrong. Please try again.</span>
+                        </div>
+                        <div class="message-example warning">
+                            <span class="icon">⚠️</span>
+                            <span class="text">Connection is slow. Retrying automatically...</span>
+                        </div>
+                        <div class="message-example success">
+                            <span class="icon">✅</span>
+                            <span class="text">Request completed successfully!</span>
+                        </div>
+                        <div class="message-example info">
+                            <span class="icon">ℹ️</span>
+                            <span class="text">Using cached data while reconnecting...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recovery-card">
+                    <h4>Graceful Degradation</h4>
+                    <div class="degradation-examples">
+                        <div class="degradation-item">
+                            <span class="feature">Live Data</span>
+                            <span class="arrow">→</span>
+                            <span class="fallback">Cached Data</span>
+                        </div>
+                        <div class="degradation-item">
+                            <span class="feature">Real-time Updates</span>
+                            <span class="arrow">→</span>
+                            <span class="fallback">Manual Refresh</span>
+                        </div>
+                        <div class="degradation-item">
+                            <span class="feature">Full Features</span>
+                            <span class="arrow">→</span>
+                            <span class="fallback">Core Features</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+<script src="script.js"></script>
+</body>
+
+</html>

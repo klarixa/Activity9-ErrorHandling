@@ -1,0 +1,25 @@
+{
+  "name": "w3.5-activity-09-error-handling",
+  "version": "1.0.0",
+  "description": "Error Handling and Retry Logic Patterns - W3.5 Activity 9",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8002",
+    "start": "python3 -m http.server 8002"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "keywords": [
+    "error-handling",
+    "retry-logic",
+    "exponential-backoff",
+    "api-resilience",
+    "fault-tolerance"
+  ],
+  "author": "Telebort Education",
+  "license": "MIT",
+  "stackblitz": {
+    "startCommand": "npm run dev"
+  }
+}
